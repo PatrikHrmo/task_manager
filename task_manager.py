@@ -9,3 +9,5 @@ elif stastie == "b":
     print(f"Milovaná {meno}, máš skvelé vlasy!")
 else:
     print(f"Milovaná {meno}, máš krásne srdieško.")
+
+print("Ďakujem za pozornosť a milujem ťa. :D")
