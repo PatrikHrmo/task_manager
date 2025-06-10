@@ -1,4 +1,4 @@
-seznam_ukolu = [
+ukoly = [
     {
         "ukol": [],
         "popis": []
@@ -7,22 +7,29 @@ seznam_ukolu = [
 
 def pridat_ukol():
     while True:
-        x = input("\nZadejte názov úkolu: ")
-        y = input("Popis úkolu: ")
-        if x != "" and y != "":
-            break
-    seznam_ukolu[0]["ukol"].append(x)
-    seznam_ukolu[0]["popis"].append(y)
+        x = input("Zadejte název úkolu: ")
+        if x == "":
+            print("Prázdný vstup.")
+            continue
+        break
+    while True:
+        y = input("Zadejte popis úkolu: ")
+        if y == "":
+            print("Prázdný vstup.")
+            continue
+        break
+    ukoly[0]["ukol"].append(x)
+    ukoly[0]["popis"].append(y)
    
-    for item in range(len(seznam_ukolu[0]["ukol"])):
-        print(f"Úkol {item+1} byl přidán.\n")
+    for item in range(len(ukoly[0]["ukol"])):
+        print(f"Úkol \"{x}\" byl přidán.")
        
     hlavni_menu()
 
 def zobrazit_ukoly():
-    for item in range(len(seznam_ukolu[0]["ukol"])):
-        print(seznam_ukolu[0]["ukol"][item])
-        print(seznam_ukolu[0]["popis"][item])
+    for item in range(len(ukoly[0]["ukol"])):
+        print(ukoly[0]["ukol"][item])
+        print(ukoly[0]["popis"][item])
     hlavni_menu()
 
 def odstranit_ukol():
@@ -32,11 +39,11 @@ def konec_programu():
     print("Konec")
 
 def hlavni_menu():
-    print("""Správce úkolú - hlavní menu
-    1. přidat nový úkol
-    2. Zobrazit všechny úkoly
-    3. Odstranit úkol
-    4. Konec programu\n""")
+    print("\nSprávce úkolů - Hlavní menu")
+    print("1. Přidat nový úkol")
+    print("2. Zobrazit všechny úkoly")
+    print("3. Odstranit úkol")
+    print("4. Konec programu")
     while True:
         try:
             moznost = int(input("Vyberte možnost (1-4): "))
