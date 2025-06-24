@@ -1,20 +1,18 @@
 # Import prepojenia na databázu
 import db_connect as db
-
+conn = db.conn
 
 # Vytvorenie databazy ukoly, pokial neexistuje, a tabulky ukoly.
-cursor = db.conn.cursor()
-cursor.execute = ("CREATE DATABASE IF NOT EXISTS ukoly")
-cursor.execute = ("USE ukoly")
-cursor.execute = ("""CREATE TABLE IF NOT EXISTS ukoly (
+cursor = conn.cursor()
+cursor.execute("CREATE DATABASE IF NOT EXISTS ukoly")
+cursor.execute("USE ukoly")
+cursor.execute("""CREATE TABLE IF NOT EXISTS ukoly (
 	id INT auto_increment PRIMARY KEY,
     nazev VARCHAR(255) NOT NULL,
     popis VARCHAR(255) NOT NULL,
     stav ENUM("nezahájeno","probíhá","hotovo") DEFAULT "nezahájeno",
     datum_vytvoreni DATETIME DEFAULT CURRENT_TIMESTAMP)
 """)
-
-db.conn.close()
 cursor.close()
 
 
@@ -60,11 +58,20 @@ def pridat_ukol():
             continue
         break
 
-    ukoly[0]["ukol"].append(nazev_ukolu)
-    ukoly[0]["popis"].append(popis_ukolu)
+    cursor = conn.cursor()
 
-    for item in range(len(ukoly[0]["ukol"])):
-        print(f"Úkol \"{nazev_ukolu}\" byl přidán.")
+    sql = ("INSERT INTO ukoly (nazev, popis) VALUES (%s, %s)")
+    values  = (nazev_ukolu, popis_ukolu)
+    cursor.execute(sql, values)
+    conn.commit()
+
+    cursor.execute("SELECT * FROM ukoly")
+    jednotlive_ukoly = cursor.fetchall()
+
+    for i in jednotlive_ukoly:
+        print(i)
+
+    cursor.close()
        
     print("\nSprávce úkolů - Hlavní menu")
     print("1. Přidat nový úkol")
@@ -92,9 +99,8 @@ def pridat_ukol():
 # Zobrazí všetky úlohy. Pokiaľ žiadna úloha neexistuje, zobrazí sa správa o neexistujúcich úlohách. Po skončení sa zobrazí hlavné menu.
 def zobrazit_ukoly():
 
-    cursor = db.conn.cursor()
-
-    cursor.execute = ("SELECT * from ukoly")
+    cursor = conn.cursor()
+    cursor.execute("SELECT * from ukoly")
     jednotlive_ukoly = cursor.fetchall()
 
     if not jednotlive_ukoly:
@@ -102,6 +108,8 @@ def zobrazit_ukoly():
     else:
         for i in jednotlive_ukoly:
             print(i)
+    
+    cursor.close()
 
     print("\nSprávce úkolů - Hlavní menu")
     print("1. Přidat nový úkol")
