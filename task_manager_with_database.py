@@ -57,7 +57,7 @@ def pridat_ukol():
             print("Prázdný vstup.")
             continue
         break
-
+    
     cursor = conn.cursor()
 
     sql = ("INSERT INTO ukoly (nazev, popis) VALUES (%s, %s)")
@@ -100,6 +100,7 @@ def pridat_ukol():
 def zobrazit_ukoly():
 
     cursor = conn.cursor()
+
     cursor.execute("SELECT * from ukoly")
     jednotlive_ukoly = cursor.fetchall()
 
@@ -137,54 +138,65 @@ def zobrazit_ukoly():
 # Pokiaľ existujú úlohy, program ich zobrazí a uživateľ ich bude môcť vymazať. Ak neexistujú žiadne úlohy, program zobrazí správu o neexistujúcich úlohách. Po skončení sa zobrazí hlavné menu.
 def odstranit_ukol():
 
-    if ukoly[0]["ukol"] == []:
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * from ukoly")
+    jednotlive_ukoly = cursor.fetchall()
+
+    if not jednotlive_ukoly:
         print("\nNemáte žádné úkoly.")
-        hlavni_menu()
     else:
-        print("\nSeznam úkolů:")
-        for item in range(len(ukoly[0]["ukol"])):
-            print(f"{item+1}. {ukoly[0]["ukol"][item]} - {ukoly[0]["popis"][item]}")
+        for i in jednotlive_ukoly:
+            print(i)
 
-        while True:
-            try:
-                odstraneny_ukol = int(input("Zadejte číslo úkolu, který chcete odstranit: "))
-            except ValueError:
-                continue
-            if odstraneny_ukol <= 0:
-                print("Nesprávny vstup.")
-                continue
+    while True:
+        try:
+            odstraneny_ukol = int(input("Zadejte číslo úkolu, který chcete odstranit: "))
+        except ValueError:
+            continue
+        if odstraneny_ukol <= 0:
+            print("Nesprávny vstup.")
+            continue
+        break
+
+    sql = "DELETE FROM ukoly WHERE id = %s"
+    values = (odstraneny_ukol,)
+    cursor.execute(sql, values)
+
+    cursor.close()
+
+    print(f"Úkol \"{odstraneny_ukol}\" byl odstraněn.")
+
+    print("\nSprávce úkolů - Hlavní menu")
+    print("1. Přidat nový úkol")
+    print("2. Zobrazit všechny úkoly")
+    print("3. Odstranit úkol")
+    print("4. Konec programu")
+
+    while True:
+        try:
+            moznost = int(input("Vyberte možnost (1-4): "))
+        except ValueError:
+            continue
+        if moznost > 0 and moznost <= 4:
             break
-        x = ukoly[0]["ukol"][odstraneny_ukol - 1]
-        del ukoly[0]["ukol"][odstraneny_ukol - 1]
-        del ukoly[0]["popis"][odstraneny_ukol - 1]
-        print(f"Úkol \"{x}\" byl odstraněn.")
-
-        print("\nSprávce úkolů - Hlavní menu")
-        print("1. Přidat nový úkol")
-        print("2. Zobrazit všechny úkoly")
-        print("3. Odstranit úkol")
-        print("4. Konec programu")
-
-        while True:
-            try:
-                moznost = int(input("Vyberte možnost (1-4): "))
-            except ValueError:
-                continue
-            if moznost > 0 and moznost <= 4:
-                break
-        if moznost == 1:
-            return pridat_ukol()
-        elif moznost == 2:
-            return zobrazit_ukoly()
-        elif moznost == 3:
-            return odstranit_ukol()
-        elif moznost == 4:
-            return konec_programu()
+    if moznost == 1:
+        return pridat_ukol()
+    elif moznost == 2:
+        return zobrazit_ukoly()
+    elif moznost == 3:
+        return odstranit_ukol()
+    elif moznost == 4:
+        return konec_programu()
 
 
 # Ukončenie programu vypísaním hlásenia o skončení programu.
 def konec_programu():
     print("\nKonec programu.")
 
+
 # Spustenie programu
 hlavni_menu()
+
+# Zatvorenie pripojenia na databázu
+conn.close()
