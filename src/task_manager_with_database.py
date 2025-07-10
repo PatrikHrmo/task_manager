@@ -1,19 +1,21 @@
 # Import prepojenia na databázu
-import db_connect as db
-conn = db.conn
+from db_connect import pripojeni_db as db
+conn = db("localhost", "root", "1111", "ukoly")
 
 # Vytvorenie databazy ukoly, pokial neexistuje, a tabulky ukoly.
-cursor = conn.cursor()
-cursor.execute("CREATE DATABASE IF NOT EXISTS ukoly")
-cursor.execute("USE ukoly")
-cursor.execute("""CREATE TABLE IF NOT EXISTS ukoly (
-	id INT auto_increment PRIMARY KEY,
-    nazev VARCHAR(255) NOT NULL,
-    popis VARCHAR(255) NOT NULL,
-    stav ENUM("nezahájeno","probíhá","hotovo") DEFAULT "nezahájeno",
-    datum_vytvoreni DATETIME DEFAULT CURRENT_TIMESTAMP)
-""")
-cursor.close()
+def inicializace_db():
+
+    cursor = conn.cursor()
+    cursor.execute("CREATE DATABASE IF NOT EXISTS ukoly")
+    cursor.execute("USE ukoly")
+    cursor.execute("""CREATE TABLE IF NOT EXISTS ukoly (
+	    id INT auto_increment PRIMARY KEY,
+        nazev VARCHAR(255) NOT NULL,
+        popis VARCHAR(255) NOT NULL,
+        stav ENUM("nezahájeno","probíhá","hotovo") DEFAULT "nezahájeno",
+        datum_vytvoreni DATETIME DEFAULT CURRENT_TIMESTAMP)
+    """)
+    cursor.close()
 
 
 # Hlavné menu, ktoré zobrazí 4 operácie, ktorým prináležia 4 funkcie. Pri zadaní nesprávnej hodnoty program vráti požiadavku alebo upozorní na chybu.
@@ -110,6 +112,7 @@ def zobrazit_ukoly():
         for i in jednotlive_ukoly:
             print(i)
     
+    conn.commit()
     cursor.close()
 
     print("\nSprávce úkolů - Hlavní menu")
@@ -163,6 +166,7 @@ def odstranit_ukol():
     values = (odstraneny_ukol,)
     cursor.execute(sql, values)
 
+    conn.commit()
     cursor.close()
 
     print(f"Úkol \"{odstraneny_ukol}\" byl odstraněn.")
@@ -196,7 +200,9 @@ def konec_programu():
 
 
 # Spustenie programu
+inicializace_db()
 hlavni_menu()
+
 
 # Zatvorenie pripojenia na databázu
 conn.close()
