@@ -1,7 +1,3 @@
-# Import prepojenia na databázu
-import db_connect as db
-
-
 # Zoznam, do ktorého sa ukladajú úlohy
 ukoly = [
     {
