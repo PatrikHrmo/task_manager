@@ -14,8 +14,9 @@ def main_menu():
         print("4. Konec programu")
 
         try:
-            option = int(input("Vyberte možnost (1-4): "))
+            option = int(input("\nVyberte možnost (1-4): "))
         except ValueError:
+            print("Špatné číslo.")
             continue
         if option < 1 or option > 4:
             continue
@@ -23,11 +24,16 @@ def main_menu():
         if option == 1:
             name, task = add_task_import()
             add_task_db(name, task)
-            call_task(name, task)
         elif option == 2:
-            show_tasks()
+            show_tasks_db()
         elif option == 3:
-            add_task_db()
+            show_tasks_db()
+            number = tasks_enumerate()
+            if number == 0:
+                print("Nemáte žádné úkoly.")
+                continue
+            task_id = delete_tasks_import(number)
+            delete_task_db(task_id)
         elif option == 4:
             end()
             break      
@@ -35,7 +41,7 @@ def main_menu():
 
 def add_task_import():
     while True:
-        name = input("Zadejte název úkolu: ")
+        name = input("\nZadejte název úkolu: ")
         if name == "":
             continue
         break
@@ -55,7 +61,7 @@ def add_task_db(name, task):
     else:
         conn = connection_db("localhost", "root", "1111", "tasks")
         cursor = conn.cursor()
-        sql = ("INSERT INTO ukoly (name, task) VALUES (%s, %s)")
+        sql = ("INSERT INTO tasks (name, task) VALUES (%s, %s)")
         values  = (name, task)
         cursor.execute(sql, values)
         conn.commit()
@@ -63,31 +69,57 @@ def add_task_db(name, task):
         conn.close()
 
 
-def call_task(name, task):
+def show_tasks_db():
     conn = connection_db("localhost", "root", "1111", "tasks")
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM ukoly")
+    cursor.execute("SELECT * FROM tasks")
     individual_tasks = cursor.fetchall()
-    for i in individual_tasks:
-        print(i)
+    if not individual_tasks:
+        print("Nemáte žádné úkoly.")
+    else:
+        for i in individual_tasks:
+            print(f"\n{i}")
     cursor.close()
     conn.close()
 
 
-def show_tasks():
-    conn  = connection_db("localhost", "root", "1111", "tasks")
+def tasks_enumerate():
+    conn = connection_db("localhost", "root", "1111", "tasks")
     cursor = conn.cursor()
-    cursor.execute("SELECT * from ukoly")
-    individual_tasks = cursor.fetchall()
-    if individual_tasks == "":
-        return "Nemáte žádné úkoly."
-    else:
-        for i in individual_tasks:
-            print(i)
+    cursor.execute("SELECT * FROM tasks")
+    all_tasks = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    number = len(all_tasks)
+    return number
+
+
+def delete_tasks_import(number):
+    while True:
+        try:
+            task_id = int(input("\nZadejte číslo úkolu, který si želáte vymazat: "))
+        except ValueError:
+            continue
+        if task_id <= 0:
+            print("Špatné číslo.")
+            continue
+        break
+    return task_id
+
+
+def delete_task_db(task_id):
+    print(f"\nÚkol {task_id} byl odstraněn.")
+    conn = connection_db("localhost", "root", "1111", "tasks")
+    cursor = conn.cursor()
+    sql = "DELETE FROM tasks WHERE id = %s"
+    cursor.execute(sql, (task_id,))
+    conn.commit()
+    cursor.close()
+    conn.close()
 
 
 def end():
-    print("Konec programu.")
+    print("\nKonec programu.")
 
 
 main_menu()

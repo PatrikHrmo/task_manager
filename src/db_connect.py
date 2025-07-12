@@ -26,7 +26,7 @@ def initiation_db():
 def table_creation():
     conn = connection_db("localhost", "root", "1111", "tasks")
     cursor = conn.cursor()
-    cursor.execute("""CREATE TABLE IF NOT EXISTS ukoly (
+    cursor.execute("""CREATE TABLE IF NOT EXISTS tasks (
 	id INT auto_increment PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     task VARCHAR(255) NOT NULL,
