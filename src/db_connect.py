@@ -1,5 +1,6 @@
 import mysql.connector
 
+# Connection to the database.
 def connection_db(host,user,password,database):
 
     try:
@@ -13,7 +14,8 @@ def connection_db(host,user,password,database):
     except mysql.connector.Error as err:
         print(f"Chyba {err}.")
         return None
-    
+
+# Initiation of the database, creating a database if it does not exist already.
 def initiation_db():
     conn = connection_db("localhost", "root", "1111", "")
     cursor = conn.cursor()
@@ -23,6 +25,7 @@ def initiation_db():
     conn.commit()
     conn.close()
 
+# Initiation of the database, creating a database if it does not exist already.
 def table_creation():
     conn = connection_db("localhost", "root", "1111", "tasks")
     cursor = conn.cursor()

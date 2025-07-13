@@ -5,6 +5,7 @@ initiation_db()
 table_creation()
 
 
+# Main menu function. This function prints the main menu and returns it when there is a faulty imput or when a block of functions ends. The program when the input is equal to 5.
 def main_menu():
     while True:
         print("\nSprávce úkolů - Hlavní menu")
@@ -48,6 +49,7 @@ def main_menu():
             break      
 
 
+# This function serves to ask for user input and stores it into the variables name and task.
 def add_task_import():
     while True:
         name = input("\nZadejte název úkolu: ")
@@ -62,9 +64,10 @@ def add_task_import():
     return name, task
 
 
+# This function stores the variables name and task into the values name and task in the table, and returns True if successful.
 def add_task_db(name, task):
     if not name or not task:
-        raise ValueError("Toto pole je povinné.")
+        raise ValueError
     else:
         conn = connection_db("localhost", "root", "1111", "tasks")
         cursor = conn.cursor()
@@ -74,8 +77,10 @@ def add_task_db(name, task):
         conn.commit()
         cursor.close()
         conn.close()
+        return True
 
 
+# This function shows existing rows in the table. If not any, it prints a message.
 def show_tasks_db():
     conn = connection_db("localhost", "root", "1111", "tasks")
     cursor = conn.cursor()
@@ -90,6 +95,7 @@ def show_tasks_db():
     conn.close()
 
 
+# This function returns the number of all the rows in the table.
 def tasks_enumerate():
     conn = connection_db("localhost", "root", "1111", "tasks")
     cursor = conn.cursor()
@@ -101,6 +107,7 @@ def tasks_enumerate():
     return number
 
 
+# This function asks for a user import regarding the id of the task that the user wants to delete and the state that the user wants to assign to the task. Then it assigns the values to the variables task_id and state and returns them.
 def update_task_import():
     while True:
         try:
@@ -126,17 +133,24 @@ def update_task_import():
     return task_id, state
 
 
+# This function updates the table with the variables task_id and states and stores them under the columns task_id and state, and returns True when done.
 def update_task_db(task_id, state):
-    conn = connection_db("localhost", "root", "1111", "tasks")
-    cursor = conn.cursor()
-    sql = "UPDATE tasks SET state = %s WHERE id = %s"
-    values = (state, task_id)
-    cursor.execute(sql, values)
-    conn.commit()
-    cursor.close()
-    conn.close()
+    if not task_id or not state:
+        raise ValueError
+    else:
+        conn = connection_db("localhost", "root", "1111", "tasks")
+        cursor = conn.cursor()
+        sql = "UPDATE tasks SET state = %s WHERE id = %s"
+        values = (state, task_id)
+        cursor.execute(sql, values)
+        updated_rows = cursor.rowcount
+        conn.commit()
+        cursor.close()
+        conn.close()
+        return updated_rows > 0
 
 
+# This function asks the user for an input of the number of the task that the user wishes to delete. Then it returns its value as task_id.
 def delete_tasks_import(number):
     while True:
         try:
@@ -150,17 +164,23 @@ def delete_tasks_import(number):
     return task_id
 
 
+# This function takes the value of task_id and uses it to identify the id in the table and delete the relative row. When done, it returns True.
 def delete_task_db(task_id):
-    print(f"\nÚkol {task_id} byl odstraněn.")
-    conn = connection_db("localhost", "root", "1111", "tasks")
-    cursor = conn.cursor()
-    sql = "DELETE FROM tasks WHERE id = %s"
-    cursor.execute(sql, (task_id,))
-    conn.commit()
-    cursor.close()
-    conn.close()
+    if not task_id:
+        raise ValueError
+    else:
+        conn = connection_db("localhost", "root", "1111", "tasks")
+        cursor = conn.cursor()
+        sql = "DELETE FROM tasks WHERE id = %s"
+        cursor.execute(sql, (task_id,))
+        deleted_rows = cursor.rowcount
+        conn.commit()
+        cursor.close()
+        conn.close()
+        print(f"\nÚkol {task_id} byl odstraněn.")
+        return deleted_rows > 0
 
-
+# This function ends the program by printing the message.
 def end():
     print("\nKonec programu.")
 
