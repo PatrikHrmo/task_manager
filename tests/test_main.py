@@ -1,4 +1,6 @@
 import mysql.connector
+import pytest
+from src.main import add_task_db
 
 def connection_db(host,user,password,database):
 
@@ -41,8 +43,9 @@ connection_db("localhost", "root", "1111", "")
 initiation_db()
 table_creation()
 
-# Zobrazi existujici ukol v databazi, jestli existuje
-def test_show_tasks():
+
+# The test passes if there are tasks. It fails if there are no tasks.
+def test_show_tasks_exist():
     
     conn = connection_db("localhost", "root", "1111", "tasks")
     cursor = conn.cursor()
@@ -51,7 +54,57 @@ def test_show_tasks():
     cursor.close()
     conn.close()
 
-    if result:
-        assert "Úlohy existujú."
-    else:
-        assert "Úlohy neexistujú."
+    assert result != [], "There are existing tasks."
+    print("There are existing tasks.")
+
+
+# The test passes if there are no tasks. It fails if there are tasks.
+def test_show_tasks_noexist():
+
+    conn = connection_db("localhost", "root", "1111", "tasks")
+    cursor = conn.cursor()
+    cursor.execute("select * from tasks;")
+    result = cursor.fetchall()
+    cursor.close()
+    conn.close()
+
+    assert result == [], "There are no tasks."
+    print("There are no tasks.")
+
+
+@pytest.mark.parametrize("name_1, task_1", 
+        [
+            ("Task 1", "Description 1"),
+        ]
+)
+
+
+def test_add_task_db_positive(name_1, task_1):
+    conn = connection_db("localhost", "root", "1111", "tasks")
+    cursor = conn.cursor()
+    sql = ("INSERT INTO tasks (name, task) VALUES (%s, %s)")
+    values  = (name_1, task_1)
+    cursor.execute(sql, values)
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    assert cursor.rowcount == 1, "The task has been added successfuly."
+    print("The task has been added successfuly.")
+
+
+@pytest.mark.parametrize("name_2, task_2",
+        [
+            ("Name 2", "")
+        ]
+)
+
+def test_add_task_db_negative(name_2, task_2):
+    conn = connection_db("localhost", "root", "1111", "tasks")
+    cursor = conn.cursor()
+
+    with pytest.raises(ValueError):
+        add_task_db(name_2, task_2)
+
+    cursor.close()
+    conn.close()
