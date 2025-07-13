@@ -1,8 +1,8 @@
 import mysql.connector
 import pytest
 
+# Connection to the database.
 def connection_db(host,user,password,database):
-
     try:
         conn = mysql.connector.connect(
             host = host,
@@ -14,7 +14,8 @@ def connection_db(host,user,password,database):
     except mysql.connector.Error as err:
         print(f"Chyba {err}.")
         return None
-    
+
+# Initiation of the database, creating a database if it does not exist already.
 def initiation_db():
     conn = connection_db("localhost", "root", "1111", "")
     cursor = conn.cursor()
@@ -24,6 +25,7 @@ def initiation_db():
     conn.commit()
     conn.close()
 
+# Creating a table if it does not exist already.
 def table_creation():
     conn = connection_db("localhost", "root", "1111", "tasks")
     cursor = conn.cursor()
@@ -38,72 +40,61 @@ def table_creation():
     conn.commit()
     conn.close()
 
+# Using of the database functions.
 connection_db("localhost", "root", "1111", "")
 initiation_db()
 table_creation()
 
 
-# The test passes if there are tasks. It fails if there are no tasks.
-def test_show_tasks_exist():
-    
-    conn = connection_db("localhost", "root", "1111", "tasks")
-    cursor = conn.cursor()
-    cursor.execute("select * from tasks;")
-    result = cursor.fetchall()
-    cursor.close()
-    conn.close()
-
-    assert result != [], "There are existing tasks."
-    print("There are existing tasks.")
-
-
-# The test passes if there are no tasks. It fails if there are tasks.
-def test_show_tasks_noexist():
-
-    conn = connection_db("localhost", "root", "1111", "tasks")
-    cursor = conn.cursor()
-    cursor.execute("select * from tasks;")
-    result = cursor.fetchall()
-    cursor.close()
-    conn.close()
-
-    assert result == [], "There are no tasks."
-    print("There are no tasks.")
+# Tested function:
+def delete_task_db(task_id):
+    if not task_id:
+        raise ValueError
+    else:
+        conn = connection_db("localhost", "root", "1111", "tasks")
+        cursor = conn.cursor()
+        sql = "DELETE FROM tasks WHERE id = %s"
+        cursor.execute(sql, (task_id,))
+        deleted_rows = cursor.rowcount
+        conn.commit()
+        cursor.close()
+        conn.close()
+        print(f"\nÚkol {task_id} byl odstraněn.")
+        return deleted_rows > 0
 
 
-@pytest.mark.parametrize("name_1, task_1", 
+# Positive test: Deletes a row where id is equal to task_id.
+@pytest.mark.positive
+@pytest.mark.parametrize("task_id",
         [
-            ("Task 1", "Description 1"),
+            (3)
         ]
 )
 
-
-def test_add_task_db_nofuncion(name_1, task_1):
+def test_delete_task_db_positive(task_id):
     conn = connection_db("localhost", "root", "1111", "tasks")
     cursor = conn.cursor()
-    sql = ("INSERT INTO tasks (name, task) VALUES (%s, %s)")
-    values  = (name_1, task_1)
-    cursor.execute(sql, values)
-    conn.commit()
+
+    assert delete_task_db(task_id)
+
     cursor.close()
     conn.close()
 
-    assert cursor.rowcount == 1, "The task has been added successfuly."
-    print("The task has been added successfuly.")
 
-
-@pytest.mark.parametrize("name_2, task_2",
+# Negative test: The test passes when there is missing value of task_id, so nothing happens.
+@pytest.mark.negative
+@pytest.mark.parametrize("task_id",
         [
-            ("Name 2", "")
+            ()
         ]
 )
 
-def test_add_task_db_negative(name_2, task_2):
+def test_delete_task_db_negative(task_id):
     conn = connection_db("localhost", "root", "1111", "tasks")
     cursor = conn.cursor()
 
     with pytest.raises(ValueError):
-        add_task_db(name_2, task_2)
+        delete_task_db(task_id)
 
     cursor.close()
     conn.close()

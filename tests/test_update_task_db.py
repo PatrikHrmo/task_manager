@@ -1,8 +1,8 @@
 import mysql.connector
 import pytest
 
+# Connection to the database
 def connection_db(host,user,password,database):
-
     try:
         conn = mysql.connector.connect(
             host = host,
@@ -15,6 +15,7 @@ def connection_db(host,user,password,database):
         print(f"Chyba {err}.")
         return None
     
+# Initiation of the database, creating a database if it does not exist already.
 def initiation_db():
     conn = connection_db("localhost", "root", "1111", "")
     cursor = conn.cursor()
@@ -24,6 +25,7 @@ def initiation_db():
     conn.commit()
     conn.close()
 
+# Creating a table if it does not exist already.
 def table_creation():
     conn = connection_db("localhost", "root", "1111", "tasks")
     cursor = conn.cursor()
@@ -38,72 +40,60 @@ def table_creation():
     conn.commit()
     conn.close()
 
+# Using of the database functions
 connection_db("localhost", "root", "1111", "")
 initiation_db()
 table_creation()
 
-
-# The test passes if there are tasks. It fails if there are no tasks.
-def test_show_tasks_exist():
-    
-    conn = connection_db("localhost", "root", "1111", "tasks")
-    cursor = conn.cursor()
-    cursor.execute("select * from tasks;")
-    result = cursor.fetchall()
-    cursor.close()
-    conn.close()
-
-    assert result != [], "There are existing tasks."
-    print("There are existing tasks.")
-
-
-# The test passes if there are no tasks. It fails if there are tasks.
-def test_show_tasks_noexist():
-
-    conn = connection_db("localhost", "root", "1111", "tasks")
-    cursor = conn.cursor()
-    cursor.execute("select * from tasks;")
-    result = cursor.fetchall()
-    cursor.close()
-    conn.close()
-
-    assert result == [], "There are no tasks."
-    print("There are no tasks.")
+# Tested function
+def update_task_db(state, task_id):
+    if not task_id or not state:
+        raise ValueError
+    else:
+        conn = connection_db("localhost", "root", "1111", "tasks")
+        cursor = conn.cursor()
+        sql = "UPDATE tasks SET state = %s WHERE id = %s"
+        values = (state, task_id)
+        cursor.execute(sql, values)
+        updated_rows = cursor.rowcount
+        conn.commit()
+        cursor.close()
+        conn.close()
+        return updated_rows > 0
 
 
-@pytest.mark.parametrize("name_1, task_1", 
+# Positive test: The test changes the state from default to in_progress, and is successful if there is a task with id number 1.
+@pytest.mark.positive
+@pytest.mark.parametrize("state, task_id",
         [
-            ("Task 1", "Description 1"),
+            ("in_progress", 1)
         ]
 )
 
-
-def test_add_task_db_nofuncion(name_1, task_1):
+def test_update_task_db_positive(state, task_id):
     conn = connection_db("localhost", "root", "1111", "tasks")
     cursor = conn.cursor()
-    sql = ("INSERT INTO tasks (name, task) VALUES (%s, %s)")
-    values  = (name_1, task_1)
-    cursor.execute(sql, values)
-    conn.commit()
+
+    assert update_task_db(state, task_id)
+
     cursor.close()
     conn.close()
 
-    assert cursor.rowcount == 1, "The task has been added successfuly."
-    print("The task has been added successfuly.")
 
-
-@pytest.mark.parametrize("name_2, task_2",
+# Negative test: The test is successful if at least one of the values is empty: the state of the task is not updated.
+@pytest.mark.negative
+@pytest.mark.parametrize("state, task_id",
         [
-            ("Name 2", "")
+            ("in_progress", 1)
         ]
 )
 
-def test_add_task_db_negative(name_2, task_2):
+def test_update_task_db_negative(state, task_id):
     conn = connection_db("localhost", "root", "1111", "tasks")
     cursor = conn.cursor()
 
     with pytest.raises(ValueError):
-        add_task_db(name_2, task_2)
+        update_task_db(state, task_id)
 
     cursor.close()
     conn.close()
