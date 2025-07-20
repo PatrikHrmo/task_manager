@@ -66,14 +66,15 @@ def add_task_import():
 
 
 # This function stores the variables name and task into the values name and task in the table, and returns True if successful.
-def add_task_db(name, task):
+def add_task_db(conn, name, task):
     if not name or not task:
         raise ValueError
     else:
         conn.db_add_task(name, task)
         conn.updated_rows = conn.cursor.rowcount
+        result = conn.cursor.rowcount > 0
         conn.db_close()
-        return conn.cursor.rowcount > 0
+        return result
 
 
 # This function shows existing rows in the table. If not any, it prints a message.
@@ -103,6 +104,7 @@ def update_task_import():
         try:
             task_id = int(input("\nZadejte číslo úkolu, který si želáte aktualizovat: "))
         except ValueError:
+            print("Špatná hodnota.")
             continue
         if task_id < 1:
             print("Špatné číslo.")
@@ -112,8 +114,10 @@ def update_task_import():
         try:
             choice = int(input("Želáte si přidelit nový stav? Pro stav PROBÍHÁ stiskněte 1, pro stav HOTOVO stiskněte 2: "))
         except ValueError:
+            print("Špatná hodnota.")
             continue
         if choice < 1 or choice > 2:
+            print("Špatná hodnota.")
             continue
         elif choice == 1:
             state = "in_progress"
@@ -140,6 +144,7 @@ def delete_tasks_import(number):
         try:
             task_id = int(input("\nZadejte číslo úkolu, který si želáte odstranit: "))
         except ValueError:
+            print("Špatná hodnota.")
             continue
         if task_id < 1:
             print("Špatné číslo.")
@@ -153,10 +158,10 @@ def delete_task_db(task_id):
     if not task_id:
         raise ValueError
     else:
-        conn.db_delete_task(task_id)
+        task_name = conn.db_delete_task(task_id)
         deleted_rows = conn.cursor.rowcount
         conn.db_close()
-        print(f"\nÚkol {task_id} byl odstraněn.")
+        print(f"\nÚkol {task_id} s názvom '{task_name}' byl odstraněn.")
         return deleted_rows > 0
     
 
@@ -165,4 +170,6 @@ def end():
     print("\nKonec programu.")
 
 
-main_menu()
+# Starting the app.
+if __name__ == "__main__":
+    main_menu()

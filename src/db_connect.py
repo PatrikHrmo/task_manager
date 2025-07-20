@@ -79,7 +79,14 @@ class DbTaskManager:
     
     def db_delete_task(self, task_id):
         self.db_connect()
+        sql = "SELECT name FROM tasks WHERE id = %s"
+        self.cursor.execute(sql, (task_id,))
+        result = self.cursor.fetchone()
+        if result is None:
+            self.db_close()
+            return None
+        task_name = result[0]
         sql = "DELETE FROM tasks WHERE id = %s"
         self.cursor.execute(sql, (task_id,))
         self.connection.commit()
-        return True
+        return task_name

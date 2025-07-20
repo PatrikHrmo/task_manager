@@ -40,7 +40,7 @@ def table_creation():
     conn.commit()
     conn.close()
 
-# Using of the database functions.
+# Using the database functions.
 connection_db("localhost", "root", "1111", "")
 initiation_db()
 table_creation()
@@ -63,11 +63,11 @@ def delete_task_db(task_id):
         return deleted_rows > 0
 
 
-# Positive test: Deletes a row where id is equal to task_id.
+# Positive test: Deletes a row where id is equal to task_id. Be sure there are tasks in the table and use the correct id.
 @pytest.mark.positive
 @pytest.mark.parametrize("task_id",
         [
-            (3)
+            (1)
         ]
 )
 
