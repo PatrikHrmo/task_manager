@@ -26,7 +26,7 @@ def main_menu():
 
         if option == 1:
             name, task = add_task_import()
-            add_task_db(name, task)
+            add_task_db(conn, name, task)
         elif option == 2:
             show_tasks_db()
         elif option ==3:
@@ -36,7 +36,7 @@ def main_menu():
                 print("Nemáte žádné úkoly.")
                 continue
             task_id, state = update_task_import()
-            update_task_db(task_id, state)
+            update_task_db(conn, task_id, state)
         elif option == 4:
             show_tasks_db()
             number = tasks_enumerate()
@@ -44,7 +44,7 @@ def main_menu():
                 print("Nemáte žádné úkoly.")
                 continue
             task_id = delete_tasks_import(number)
-            delete_task_db(task_id)
+            delete_task_db(conn, task_id)
         elif option == 5:
             end()
             break      
@@ -73,7 +73,6 @@ def add_task_db(conn, name, task):
         conn.db_add_task(name, task)
         conn.updated_rows = conn.cursor.rowcount
         result = conn.cursor.rowcount > 0
-        conn.db_close()
         return result
 
 
@@ -94,7 +93,6 @@ def tasks_enumerate():
     conn.db_fetch_tasks_all()
     all_tasks = conn.cursor.fetchall()
     number = len(all_tasks)
-    conn.db_close()
     return number
 
 
@@ -128,13 +126,12 @@ def update_task_import():
 
 
 # This function updates the table with the variables task_id and states and stores them under the columns task_id and state, and returns True when done.
-def update_task_db(task_id, state):
+def update_task_db(conn, task_id, state):
     if not task_id or not state:
         raise ValueError
     else:
         conn.db_update_task(state, task_id)
         updated_rows = conn.cursor.rowcount
-        conn.db_close()
         return updated_rows > 0
 
 
@@ -154,13 +151,12 @@ def delete_tasks_import(number):
 
 
 # This function takes the value of task_id and uses it to identify the id in the table and delete the relative row. When done, it returns True.
-def delete_task_db(task_id):
+def delete_task_db(conn, task_id):
     if not task_id:
         raise ValueError
     else:
         task_name = conn.db_delete_task(task_id)
         deleted_rows = conn.cursor.rowcount
-        conn.db_close()
         print(f"\nÚkol {task_id} s názvom '{task_name}' byl odstraněn.")
         return deleted_rows > 0
     
@@ -173,3 +169,7 @@ def end():
 # Starting the app.
 if __name__ == "__main__":
     main_menu()
+
+
+# Closing the database connection.
+conn.db_close()
