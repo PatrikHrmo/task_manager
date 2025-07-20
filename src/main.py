@@ -1,8 +1,9 @@
 # Database connection
-from db_connect import connection_db, initiation_db, table_creation
-connection_db("localhost", "root", "1111", "")
-initiation_db()
-table_creation()
+from db_connect import DbTaskManager
+conn = DbTaskManager("localhost", "root", "1111", "tasks")
+conn.db_connect()
+conn.db_create()
+conn.db_table_create()
 
 
 # Main menu function. This function prints the main menu and returns it when there is a faulty imput or when a block of functions ends. The program when the input is equal to 5.
@@ -69,41 +70,30 @@ def add_task_db(name, task):
     if not name or not task:
         raise ValueError
     else:
-        conn = connection_db("localhost", "root", "1111", "tasks")
-        cursor = conn.cursor()
-        sql = ("INSERT INTO tasks (name, task) VALUES (%s, %s)")
-        values  = (name, task)
-        cursor.execute(sql, values)
-        conn.commit()
-        cursor.close()
-        conn.close()
-        return True
+        conn.db_add_task(name, task)
+        conn.updated_rows = conn.cursor.rowcount
+        conn.db_close()
+        return conn.cursor.rowcount > 0
 
 
 # This function shows existing rows in the table. If not any, it prints a message.
 def show_tasks_db():
-    conn = connection_db("localhost", "root", "1111", "tasks")
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM tasks WHERE state IN ('not_initiated','in_progress');")
-    individual_tasks = cursor.fetchall()
+    conn.db_fetch_tasks_notdone()
+    individual_tasks = conn.cursor.fetchall()
     if not individual_tasks:
         print("Nemáte žádné úkoly.")
     else:
         for i in individual_tasks:
             print(f"\n{i}")
-    cursor.close()
-    conn.close()
+    conn.db_close()
 
 
 # This function returns the number of all the rows in the table.
 def tasks_enumerate():
-    conn = connection_db("localhost", "root", "1111", "tasks")
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM tasks")
-    all_tasks = cursor.fetchall()
-    cursor.close()
-    conn.close()
+    conn.db_fetch_tasks_all()
+    all_tasks = conn.cursor.fetchall()
     number = len(all_tasks)
+    conn.db_close()
     return number
 
 
@@ -138,15 +128,9 @@ def update_task_db(task_id, state):
     if not task_id or not state:
         raise ValueError
     else:
-        conn = connection_db("localhost", "root", "1111", "tasks")
-        cursor = conn.cursor()
-        sql = "UPDATE tasks SET state = %s WHERE id = %s"
-        values = (state, task_id)
-        cursor.execute(sql, values)
-        updated_rows = cursor.rowcount
-        conn.commit()
-        cursor.close()
-        conn.close()
+        conn.db_update_task(state, task_id)
+        updated_rows = conn.cursor.rowcount
+        conn.db_close()
         return updated_rows > 0
 
 
@@ -169,16 +153,12 @@ def delete_task_db(task_id):
     if not task_id:
         raise ValueError
     else:
-        conn = connection_db("localhost", "root", "1111", "tasks")
-        cursor = conn.cursor()
-        sql = "DELETE FROM tasks WHERE id = %s"
-        cursor.execute(sql, (task_id,))
-        deleted_rows = cursor.rowcount
-        conn.commit()
-        cursor.close()
-        conn.close()
+        conn.db_delete_task(task_id)
+        deleted_rows = conn.cursor.rowcount
+        conn.db_close()
         print(f"\nÚkol {task_id} byl odstraněn.")
         return deleted_rows > 0
+    
 
 # This function ends the program by printing the message.
 def end():

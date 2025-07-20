@@ -1,5 +1,5 @@
 # Import prepojenia na databázu
-from db_connect import pripojeni_db as db
+from old.db_connect import pripojeni_db as db
 conn = db("localhost", "root", "1111", "ukoly")
 
 # Vytvorenie databazy ukoly, pokial neexistuje, a tabulky ukoly.
