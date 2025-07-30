@@ -70,16 +70,12 @@ def add_task_db(conn, name, task):
     if not name or not task:
         raise ValueError
     else:
-        conn.db_add_task(name, task)
-        conn.updated_rows = conn.cursor.rowcount
-        result = conn.cursor.rowcount > 0
-        return result
+        return conn.db_add_task(name, task)
 
 
 # This function shows existing rows in the table. If not any, it prints a message.
 def show_tasks_db():
-    conn.db_fetch_tasks_notdone()
-    individual_tasks = conn.cursor.fetchall()
+    individual_tasks = conn.db_fetch_tasks_notdone()
     if not individual_tasks:
         print("Nemáte žádné úkoly.")
     else:
@@ -90,8 +86,8 @@ def show_tasks_db():
 
 # This function returns the number of all the rows in the table.
 def tasks_enumerate():
-    conn.db_fetch_tasks_all()
-    all_tasks = conn.cursor.fetchall()
+    all_tasks = conn.db_fetch_tasks_all()
+    conn.db_close()
     number = len(all_tasks)
     return number
 
@@ -130,9 +126,9 @@ def update_task_db(conn, task_id, state):
     if not task_id or not state:
         raise ValueError
     else:
-        conn.db_update_task(state, task_id)
-        updated_rows = conn.cursor.rowcount
-        return updated_rows > 0
+        result = conn.db_update_task(state, task_id)
+        conn.db_close()
+        return result
 
 
 # This function asks the user for an input of the number of the task that the user wishes to delete. Then it returns its value as task_id.
@@ -155,10 +151,11 @@ def delete_task_db(conn, task_id):
     if not task_id:
         raise ValueError
     else:
-        task_name = conn.db_delete_task(task_id)
-        deleted_rows = conn.cursor.rowcount
-        print(f"\nÚkol {task_id} s názvom '{task_name}' byl odstraněn.")
-        return deleted_rows > 0
+        task_name, success = conn.db_delete_task(task_id)
+        conn.db_close()
+        if success:
+            print(f"\nÚkol {task_id} s názvom '{task_name}' byl odstraněn.")
+        return success
     
 
 # This function ends the program by printing the message.

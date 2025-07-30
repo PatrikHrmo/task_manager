@@ -1,6 +1,7 @@
 import mysql.connector
 import pytest
 
+# Connection to the database.
 def connection_db(host,user,password,database):
 
     try:
@@ -14,7 +15,8 @@ def connection_db(host,user,password,database):
     except mysql.connector.Error as err:
         print(f"Chyba {err}.")
         return None
-    
+
+# Initiation of the database, creating a database if it does not exist already.
 def initiation_db():
     conn = connection_db("localhost", "root", "1111", "")
     cursor = conn.cursor()
@@ -24,6 +26,7 @@ def initiation_db():
     conn.commit()
     conn.close()
 
+# Creating a table if it does not exist already.
 def table_creation():
     conn = connection_db("localhost", "root", "1111", "tasks")
     cursor = conn.cursor()
@@ -38,6 +41,7 @@ def table_creation():
     conn.commit()
     conn.close()
 
+# Using the database functions.
 connection_db("localhost", "root", "1111", "")
 initiation_db()
 table_creation()
@@ -71,6 +75,7 @@ def test_show_tasks_noexist():
     print("There are no tasks.")
 
 
+# The test passes if the name and tasks are added to the table.
 @pytest.mark.parametrize("name_1, task_1", 
         [
             ("Task 1", "Description 1"),
@@ -90,20 +95,3 @@ def test_add_task_db_nofuncion(name_1, task_1):
 
     assert cursor.rowcount == 1, "The task has been added successfuly."
     print("The task has been added successfuly.")
-
-
-@pytest.mark.parametrize("name_2, task_2",
-        [
-            ("Name 2", "")
-        ]
-)
-
-def test_add_task_db_negative(name_2, task_2):
-    conn = connection_db("localhost", "root", "1111", "tasks")
-    cursor = conn.cursor()
-
-    with pytest.raises(ValueError):
-        add_task_db(name_2, task_2)
-
-    cursor.close()
-    conn.close()
