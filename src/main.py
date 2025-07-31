@@ -1,9 +1,11 @@
 # Database connection
 from db_connect import DbTaskManager
-conn = DbTaskManager("localhost", "root", "1111", "tasks")
-conn.db_connect()
-conn.db_create()
-conn.db_table_create()
+
+def setup_database():
+    with DbTaskManager("localhost", "root", "1111", None) as conn:
+        conn.db_create()
+    with DbTaskManager("localhost", "root", "1111", "tasks") as conn:
+        conn.db_table_create()
 
 
 # Main menu function. This function prints the main menu and returns it when there is a faulty imput or when a block of functions ends. The program when the input is equal to 5.
@@ -26,7 +28,7 @@ def main_menu():
 
         if option == 1:
             name, task = add_task_import()
-            add_task_db(conn, name, task)
+            add_task_db(name, task)
         elif option == 2:
             show_tasks_db()
         elif option ==3:
@@ -36,7 +38,7 @@ def main_menu():
                 print("Nemáte žádné úkoly.")
                 continue
             task_id, state = update_task_import()
-            update_task_db(conn, task_id, state)
+            update_task_db(task_id, state)
         elif option == 4:
             show_tasks_db()
             number = tasks_enumerate()
@@ -44,7 +46,7 @@ def main_menu():
                 print("Nemáte žádné úkoly.")
                 continue
             task_id = delete_tasks_import(number)
-            delete_task_db(conn, task_id)
+            delete_task_db(task_id)
         elif option == 5:
             end()
             break      
@@ -66,28 +68,29 @@ def add_task_import():
 
 
 # This function stores the variables name and task into the values name and task in the table, and returns True if successful.
-def add_task_db(conn, name, task):
+def add_task_db(name, task):
     if not name or not task:
         raise ValueError
     else:
-        return conn.db_add_task(name, task)
+        with DbTaskManager("localhost", "root", "1111", "tasks") as conn:
+            return conn.db_add_task(name, task)
 
 
 # This function shows existing rows in the table. If not any, it prints a message.
 def show_tasks_db():
-    individual_tasks = conn.db_fetch_tasks_notdone()
+    with DbTaskManager("localhost", "root", "1111", "tasks") as conn:
+        individual_tasks = conn.db_fetch_tasks_notdone()
     if not individual_tasks:
         print("Nemáte žádné úkoly.")
     else:
         for i in individual_tasks:
             print(f"\n{i}")
-    conn.db_close()
 
 
 # This function returns the number of all the rows in the table.
 def tasks_enumerate():
-    all_tasks = conn.db_fetch_tasks_all()
-    conn.db_close()
+    with DbTaskManager("localhost", "root", "1111", "tasks") as conn:
+        all_tasks = conn.db_fetch_tasks_all()
     number = len(all_tasks)
     return number
 
@@ -122,12 +125,12 @@ def update_task_import():
 
 
 # This function updates the table with the variables task_id and states and stores them under the columns task_id and state, and returns True when done.
-def update_task_db(conn, task_id, state):
+def update_task_db(task_id, state):
     if not task_id or not state:
         raise ValueError
     else:
-        result = conn.db_update_task(state, task_id)
-        conn.db_close()
+        with DbTaskManager("localhost", "root", "1111", "tasks") as conn:
+            result = conn.db_update_task(state, task_id)
         return result
 
 
@@ -147,12 +150,12 @@ def delete_tasks_import(number):
 
 
 # This function takes the value of task_id and uses it to identify the id in the table and delete the relative row. When done, it returns True.
-def delete_task_db(conn, task_id):
+def delete_task_db(task_id):
     if not task_id:
         raise ValueError
     else:
-        task_name, success = conn.db_delete_task(task_id)
-        conn.db_close()
+        with DbTaskManager("localhost", "root", "1111", "tasks") as conn:
+            task_name, success = conn.db_delete_task(task_id)
         if success:
             print(f"\nÚkol {task_id} s názvom '{task_name}' byl odstraněn.")
         return success
@@ -165,8 +168,5 @@ def end():
 
 # Starting the app.
 if __name__ == "__main__":
+    setup_database()
     main_menu()
-
-
-# Closing the database connection.
-conn.db_close()
