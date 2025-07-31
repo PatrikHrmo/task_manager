@@ -14,11 +14,11 @@ from main import add_task_db, update_task_db
         ("Name 1", "Task 1", "done")
     ])
 def test_update_task_db_positive(test_db, name, task, state):
-    add_task_db(test_db, name, task)
+    add_task_db(name, task)
     test_db.cursor.execute("SELECT id FROM tasks WHERE name = %s AND task = %s", (name, task))
     position = test_db.cursor.fetchone()
     task_id = position[0]
-    result = update_task_db(test_db, task_id, state)
+    result = update_task_db(task_id, state)
     assert result is True
 
 
@@ -30,4 +30,4 @@ def test_update_task_db_positive(test_db, name, task, state):
     ])
 def test_update_task_db_negative(test_db, state, task_id):
     with pytest.raises(ValueError):
-        update_task_db(test_db, state, task_id)
+        update_task_db(state, task_id)
