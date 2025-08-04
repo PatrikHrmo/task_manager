@@ -1,4 +1,4 @@
-# Database connection
+# Db initiation
 from db_connect import DbTaskManager
 
 def setup_database():
